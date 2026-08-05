@@ -1519,11 +1519,25 @@
   // turunan Bagian 1 sekaligus. Bagian 2 & 3 TIDAK disentuh — keduanya
   // memang sengaja menampilkan seluruh asal alokasi (termasuk RI &
   // PROVINSI) karena cakupannya se-kota, bukan performa personal.
+  //
+  // PERBAIKAN 5 Agu 2026 (lanjutan) — filter di atas ternyata belum
+  // cukup. Ditemukan di data live (PML DINA PRATIWI) baris di mana "RI"
+  // / "PROVINSI" bukan muncul di kolom status (asal alokasi), melainkan
+  // di kolom PETUGAS itu sendiri — yaitu nama petugasnya literal "RI"
+  // atau "PROVINSI" (placeholder untuk pekerjaan yang dilakukan level
+  // RI/Provinsi, bukan oleh petugas lapangan individu di Jaktim), dengan
+  // status kolom yang normal (mis. "JIEP") sehingga lolos dari filter
+  // EXCLUDED_STATUS_BAGIAN1 di atas dan tetap muncul sebagai kartu
+  // petugas ("PROVINSI · PML DINA PRATIWI") di Bagian 1. Karena baris
+  // begini bukan kinerja petugas lapangan BPS Jaktim, harus dibuang juga
+  // — kali ini berdasarkan NAMA PETUGAS, bukan status.
   const EXCLUDED_STATUS_BAGIAN1 = new Set(["RI", "PROVINSI"]);
+  const EXCLUDED_PETUGAS_BAGIAN1 = new Set(["RI", "PROVINSI"]);
   function mergePegawaiRows(rawRows) {
     const map = new Map();
     rawRows
       .filter(r => !EXCLUDED_STATUS_BAGIAN1.has(String(r.status || "").trim().toUpperCase()))
+      .filter(r => !EXCLUDED_PETUGAS_BAGIAN1.has(normalizeKey(r.petugas)))
       .forEach(r => {
       const key = normalizeKey(r.petugas) + "||" + r.tanggalSnapshot;
       if (!map.has(key)) {
